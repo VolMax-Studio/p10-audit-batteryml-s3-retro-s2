@@ -1,0 +1,30 @@
+{
+  "E_PRECOMMIT": {
+    "preregistration_spec": "PREREGISTRATION.md",
+    "split_manifest": "s3-split-manifest.csv",
+    "test_membership": "s3-test-membership-commitment.csv",
+    "sampler_ranks": "s3-sampler-ranks.json"
+  },
+  "E_CUSTODY": {
+    "remote_api_receipt": "s3_execution_output/post-run-binding-receipt.json",
+    "dataset_manifest": "s3_execution_output/control-dataset-files.sha256"
+  },
+  "E_HOST_LOGS": {
+    "runner_log": "s3_execution_output/batteryml-protocol-robustness-s3-run.log",
+    "completion_receipt": "s3_execution_output/s3-artifact/completion-receipt.json",
+    "execution_closure": "s3_execution_output/s3-artifact/execution-closure.json",
+    "attempt_ledger": "s3_execution_output/s3-artifact/attempt-ledger.json"
+  },
+  "E_CONTROLS": {
+    "gate1_split_a": "s3_execution_output/s3-artifact/gate-1-positive-control-a.json",
+    "gate2_ref_b": "s3_execution_output/s3-artifact/gate-2-reference-split-b.json"
+  },
+  "E_PREDICTIONS": {
+    "results_root": "s3_execution_output/s3-artifact/results",
+    "total_prediction_csvs": 264,
+    "total_run_receipts": 264
+  },
+  "E_RECOMPUTATION": {
+    "script": "verifiers/verify_s3_recomputation.py"
+  }
+}

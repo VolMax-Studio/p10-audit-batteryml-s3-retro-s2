@@ -1,0 +1,13 @@
+{
+  "instance_id": "INSTANCE-BATTERYML-S3-RETRO-S2-RUN-001",
+  "target_git_commit": "4bdf33e27f3c8e1e22583ae41c13b096a81e5e38",
+  "preregistration_commit": "0958e89a0e994ed9923da26e04e1f4bfb956ab7f",
+  "remote_kernel_id": "volmax1/batteryml-protocol-robustness-s3-run",
+  "execution_receipt_sha256": "71d6c8154c46e9c8f6ca79e9b3a614f6d434ab53c0c42ec38310fc961b1dc4ac",
+  "control_dataset_archive_sha256": "3e0f042c2c97eabc43f0a5152fe7f8017697d889dd70ed8ea8e0852b082234be",
+  "recomputation_script_sha256": "eb67c13743e1d54276451d605624b4cca8f66bc2c1a97ab50d2c0da2cecb40ee",
+  "frozen_s2_core_commit": "fa7878a538f56ee9b3c8008ca71e93c04c69ecf4",
+  "frozen_s2_profile_commit": "dd88e6222fc717b557b7b5c2ebf6b1d725b50891",
+  "frozen_s2_profile_digest": "d120f64339cd4a5eac8dd8ff26a3501986cdd7a36ddaa5632747bc84b0468f49",
+  "generated_at_utc": "2026-09-20T13:00:16.331354+00:00"
+}

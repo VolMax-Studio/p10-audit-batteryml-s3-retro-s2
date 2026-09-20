@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ObligationTrace",
+  "type": "object",
+  "properties": {
+    "trace_version": { "type": "string" },
+    "claim_id": { "type": "string" },
+    "evaluated_at_utc": { "type": "string" },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "obligation_id": { "type": "string" },
+          "required_evidence": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "source_hashes": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "admissible": { "type": "boolean" },
+          "admissibility_reason": { "type": "string" },
+          "protocol_fault": { "type": ["string", "null"] },
+          "witness_classes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["satisfied", "violated", "blocked", "checkerError"]
+            }
+          },
+          "eval_status": {
+            "type": "string",
+            "enum": ["satisfied", "violated", "blocked", "missing", "checkerError"]
+          },
+          "failure_tag": { "type": ["string", "null"] },
+          "reason_code": { "type": "string" },
+          "details": { "type": "object" }
+        },
+        "required": [
+          "obligation_id",
+          "required_evidence",
+          "source_hashes",
+          "admissible",
+          "admissibility_reason",
+          "protocol_fault",
+          "witness_classes",
+          "eval_status",
+          "failure_tag",
+          "reason_code"
+        ]
+      }
+    }
+  },
+  "required": ["trace_version", "claim_id", "evaluated_at_utc", "obligations"]
+}

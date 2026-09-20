@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProtocolRobustnessClaim",
+  "type": "object",
+  "properties": {
+    "claim_id": { "type": "string" },
+    "target_models": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "split_type": { "type": "string" },
+    "cell_population": { "type": "string" },
+    "shift_threshold": { "type": "number" },
+    "prevalence_limit": { "type": "number" },
+    "gating_controls": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": [
+    "claim_id",
+    "target_models",
+    "split_type",
+    "cell_population",
+    "shift_threshold",
+    "prevalence_limit",
+    "gating_controls"
+  ]
+}

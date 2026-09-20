@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DecisionViewSchema",
+  "type": "object",
+  "properties": {
+    "protocolFault": {
+      "type": ["string", "null"],
+      "enum": [
+        null,
+        "checkerFailure",
+        "integrityFailure",
+        "targetMutation",
+        "environmentMismatch",
+        "preregistrationFracture",
+        "prematureExecution",
+        "boundaryOverclaim"
+      ]
+    },
+    "falsifiable": { "type": "boolean" },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["satisfied", "violated", "blocked", "missing", "checkerError"]
+      },
+      "minItems": 10,
+      "maxItems": 10
+    },
+    "hasBlockingLimitation": { "type": "boolean" },
+    "hasNonBlockingLimitation": { "type": "boolean" },
+    "admissibleNovelFinding": { "type": "boolean" }
+  },
+  "required": [
+    "protocolFault",
+    "falsifiable",
+    "obligations",
+    "hasBlockingLimitation",
+    "hasNonBlockingLimitation",
+    "admissibleNovelFinding"
+  ]
+}
