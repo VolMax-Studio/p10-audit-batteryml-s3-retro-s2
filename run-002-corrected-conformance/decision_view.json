@@ -1,0 +1,19 @@
+{
+  "protocolFault": null,
+  "falsifiable": true,
+  "obligations": [
+    "satisfied",
+    "satisfied",
+    "satisfied",
+    "satisfied",
+    "satisfied",
+    "satisfied",
+    "satisfied",
+    "satisfied",
+    "violated",
+    "satisfied"
+  ],
+  "hasBlockingLimitation": false,
+  "hasNonBlockingLimitation": true,
+  "admissibleNovelFinding": false
+}
