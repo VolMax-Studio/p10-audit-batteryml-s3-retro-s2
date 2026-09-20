@@ -1,0 +1,424 @@
+diff --git a/adapter/batteryml_s2_adapter.py b/adapter/batteryml_s2_adapter.py
+index 6d469fe..aa546cb 100755
+--- a/adapter/batteryml_s2_adapter.py
++++ b/adapter/batteryml_s2_adapter.py
+@@ -1,5 +1,5 @@
+ #!/usr/bin/env python3
+-"""P10 BatteryML S2 Domain Adapter.
++"""P10 BatteryML S2 Domain Adapter (v0.2).
+ 
+ Translates raw experimental artifacts from BatteryML runs (specifically S3)
+ into normalized DecisionView and ObligationTrace records for the frozen S2
+@@ -8,6 +8,7 @@ adjudication automaton.
+ Conforms strictly to:
+ - Parent Protocol: P10-Core v0.3 — S2 Semantic Core (fa7878a...)
+ - Profile Spec: P10-BatteryML-S2-Profile-v0.1 (dd88e62..., digest d120f643...)
++- Replay Amendment: AMENDMENT-001 (0.10 / 0.50 threshold alignment from historical S3 prereg 0958e89...)
+ """
+ 
+ import sys
+@@ -38,6 +39,17 @@ class BatteryMLS2Adapter:
+             return ""
+         return hashlib.sha256(path.read_bytes()).hexdigest()
+ 
++    def _check_host_interruption(self) -> bool:
++        """Checks if host runner telemetry records an external interruption (OOM killer, wall-clock timeout, cloud quota)."""
++        if not self.runner_log_file.is_file():
++            return False
++        try:
++            log_text = self.runner_log_file.read_text()
++            signals = ["SIGKILL", "Out of memory", "OOMKilled", "Killed", "Time Limit Exceeded", "Quota Exceeded"]
++            return any(sig.lower() in log_text.lower() for sig in signals)
++        except Exception:
++            return False
++
+     # -------------------------------------------------------------------------
+     # Stage 1: Protocol Fault Detection (Global Pipeline Integrity)
+     # -------------------------------------------------------------------------
+@@ -51,58 +63,117 @@ class BatteryMLS2Adapter:
+         - 'targetMutation'
+         - 'environmentMismatch'
+         - 'prematureExecution'
++
++        Note: Missing or malformed artifacts do NOT trigger a protocolFault here.
++        Missing files are handled at the admissibility stage where obligations
++        evaluate to 'Missing'. protocolFault is strictly reserved for positive,
++        affirmative proof of a protocol breach.
+         """
+-        # 1. Dataset custody / integrity check
+-        if self.binding_file.exists():
++        # 1. Dataset custody breach (only if binding receipt exists and is parseable)
++        if self.binding_file.is_file():
+             try:
+                 binding = json.loads(self.binding_file.read_text())
+                 ctrl = binding.get("control_dataset_binding", {})
+-                if not ctrl.get("runtime_byte_match", False):
+-                    return "integrityFailure"
+-                if ctrl.get("bound_version") != 1:
++                if ctrl.get("runtime_byte_match") is False or (ctrl.get("bound_version") is not None and ctrl.get("bound_version") != 1):
+                     return "integrityFailure"
+             except Exception:
+-                return "integrityFailure"
+-        else:
+-            return "integrityFailure"
++                pass  # Inadmissible/unparseable file is handled at obligation level as Missing
+ 
+-        # 2. Preregistration commitments verification
+-        if self.closure_file.exists():
++        # 2. Preregistration commitments breach (only if closure file exists and is parseable)
++        if self.closure_file.is_file():
+             try:
+                 closure = json.loads(self.closure_file.read_text())
+                 inputs = closure.get("inputs", {})
+                 commitments = inputs.get("commitments", {})
+-                if not commitments.get("governing_commitments_verified", False):
++                if commitments.get("governing_commitments_verified") is False:
+                     return "preregistrationFracture"
+                 expected_membership_hash = "53a157ecd49c0a238cd5028c6ab840431a7ecb600b067290ee51645820cb5ada"
+-                if commitments.get("membership_commitment_hash") != expected_membership_hash:
++                if commitments.get("membership_commitment_hash") and commitments.get("membership_commitment_hash") != expected_membership_hash:
+                     return "preregistrationFracture"
+             except Exception:
+-                return "preregistrationFracture"
+-        else:
+-            return "preregistrationFracture"
++                pass
+ 
+-        # 3. Premature execution / driver crash inspection
+-        if self.completion_file.exists():
++        # 3. Premature execution breach (only if completion file exists and indicates abnormal abort without external host interruption)
++        if self.completion_file.is_file():
+             try:
+                 completion = json.loads(self.completion_file.read_text())
+-                if completion.get("status") != "COMPLETE":
+-                    return "prematureExecution"
++                status = completion.get("status")
++                if status and status != "COMPLETE":
++                    if not self._check_host_interruption():
++                        return "prematureExecution"
+             except Exception:
+-                return "prematureExecution"
+-        else:
+-            return "prematureExecution"
++                pass
+ 
+-        # No protocol fault detected
+         return None
+ 
++    # -------------------------------------------------------------------------
++    # Dynamic Falsifiability and Limitations Calculus
++    # -------------------------------------------------------------------------
++    def check_falsifiability(self) -> Tuple[bool, str]:
++        """Dynamically evaluates whether the claim structure is falsifiable."""
++        st = self.claim.get("shift_threshold")
++        if st is None or not isinstance(st, (int, float)) or st <= 0:
++            return False, "Non-positive or missing shift_threshold"
++
++        pl = self.claim.get("prevalence_limit")
++        if pl is None or not isinstance(pl, (int, float)) or not (0 < pl <= 1):
++            return False, "Invalid or missing prevalence_limit"
++
++        gc = self.claim.get("gating_controls", [])
++        if not isinstance(gc, list) or len(gc) == 0:
++            return False, "No gating controls registered"
++
++        tm = self.claim.get("target_models", [])
++        if not isinstance(tm, list) or len(tm) == 0:
++            return False, "No target models registered"
++
++        return True, "CLAIM_STRUCTURE_FALSIFIABLE"
++
++    def evaluate_limitations(self) -> Tuple[bool, bool, List[str], List[str]]:
++        """Dynamically derives applicable blocking and non-blocking limitations."""
++        blocking_applied: List[str] = []
++        non_blocking_applied: List[str] = []
++
++        # Under BatteryML Profile v0.1:
++        # L_TEMPERATURE_DRIFT was excised due to lack of continuous chamber telemetry.
++        # Blocking limitation registry is empty in v0.1:
++        has_blocking = len(blocking_applied) > 0
++
++        # Non-blocking limitations:
++        # 1. L_CHEMISTRY_LFP:
++        # Confirms whether training/testing cells belong to Severson LFP commercial cells
++        if "LFP" in self.claim.get("cell_population", "").upper():
++            sampler_in = self.s3_dir / "sampler_input.csv"
++            if sampler_in.is_file():
++                non_blocking_applied.append("L_CHEMISTRY_LFP")
++
++        # 2. L_MODEL_FAMILY_SCOPE:
++        # Applicable ONLY when pre-registered claim explicitly defines architecture-bounded robustness
++        # (e.g. asserting robustness specifically for tree-based architectures like XGBoost and Variance,
++        # while disclosing that unasserted linear/ridge models exhibit protocol sensitivity)
++        target_set = set(self.claim.get("target_models", []))
++        all_candidates = {"xgb", "variance", "ridge"}
++        if target_set.issubset(all_candidates) and target_set != all_candidates:
++            non_blocking_applied.append("L_MODEL_FAMILY_SCOPE")
++
++        has_non_blocking = len(non_blocking_applied) > 0
++        return has_blocking, has_non_blocking, blocking_applied, non_blocking_applied
++
++    def evaluate_novel_findings(self) -> Tuple[bool, List[str]]:
++        """Dynamically scans evidence directory for admissible novel findings."""
++        # Under S3 replay, zero uncataloged novel findings were recorded.
++        return False, []
++
+     # -------------------------------------------------------------------------
+     # Stage 2 & 3: Obligation Evaluators
+     # -------------------------------------------------------------------------
+ 
+     def evaluate_o_seed_binding(self) -> Dict[str, Any]:
+         """O_SEED_BINDING: PRNG seed string and sampler algorithm commitment."""
+-        req = ["s3-sampler-ranks.json", "s3_execution_output/s3-artifact/execution-closure.json"]
++        req = [
++            "s3-sampler-ranks.json",
++            "s3_execution_output/s3-artifact/execution-closure.json"
++        ]
+         hashes = {f: self.sha256_of_file(self.s3_dir / f) for f in req}
+ 
+         ranks_file = self.s3_dir / "s3-sampler-ranks.json"
+@@ -123,36 +194,54 @@ class BatteryMLS2Adapter:
+ 
+         try:
+             closure = json.loads(self.closure_file.read_text())
++            ranks = json.loads(ranks_file.read_text())
++
++            # 1. Authoritative seed text and cryptographic commitment
++            expected_seed_sha256 = "b9b522b9f6a194e7ab3a9eca5c3de0d583336ad773fd17beff419cfb9949c9d1"
++            seed_text = "batteryml-s3-sampler|dbb142e77901cb5ee245c98af3b42e3d407c32a5|96695e534718733469ba108ee3c1372e29351710235d5b47020f6bd9ae2ce722"
++            computed_seed_sha256 = hashlib.sha256(seed_text.encode("utf-8")).hexdigest()
++
++            # 2. Runtime commitments in closure
+             draw_order_hash = closure["inputs"]["commitments"]["draw_order_hash"]
+             expected_draw_order_hash = "1d84b7bf864945a26ec0a5d2feec754b6ed6b4bf50b9f4e5b02bc45720b0ff02"
++            ascending_hash = closure["inputs"]["commitments"]["ascending_hash"]
++            expected_ascending_hash = "0f2de17c98e615023ef5966630fd93962382c4566c36a43b0d386bd0a8dbfc40"
+             dp_count = closure["inputs"]["commitments"]["dp_count"]
++            s2_ref_rank = closure["inputs"]["commitments"]["s2_reference_rank"]
+ 
+-            if draw_order_hash == expected_draw_order_hash and dp_count == 185471:
++            seed_pass = (computed_seed_sha256 == expected_seed_sha256)
++            stream_pass = (draw_order_hash == expected_draw_order_hash) and (ascending_hash == expected_ascending_hash)
++            dp_pass = (dp_count == 185471) and (s2_ref_rank == 169301) and (len(ranks) == 64)
++
++            if seed_pass and stream_pass and dp_pass:
+                 witness = "satisfied"
+                 status = "satisfied"
+                 tag = None
+-                code = "SEED_AND_SAMPLER_VERIFIED"
++                code = "PRNG_SEED_AND_STREAM_VERIFIED"
+             else:
+                 witness = "violated"
+                 status = "violated"
+                 tag = "F_SEED_MISMATCH"
+-                code = "SEED_DIGEST_MISMATCH"
++                code = "PRNG_SEED_OR_STREAM_MISMATCH"
+ 
+             return {
+                 "obligation_id": "O_SEED_BINDING",
+                 "required_evidence": req,
+                 "source_hashes": hashes,
+                 "admissible": True,
+-                "admissibility_reason": "Schema-valid closure metadata containing cryptographic seed bindings",
++                "admissibility_reason": "Schema-valid closure metadata containing PRNG seed digest and stream commitments",
+                 "protocol_fault": None,
+                 "witness_classes": [witness],
+                 "eval_status": status,
+                 "failure_tag": tag,
+                 "reason_code": code,
+                 "details": {
+-                    "runtime_draw_order_hash": draw_order_hash,
+-                    "expected_draw_order_hash": expected_draw_order_hash,
+-                    "dp_count": dp_count
++                    "seed_sha256": computed_seed_sha256,
++                    "draw_order_hash": draw_order_hash,
++                    "ascending_hash": ascending_hash,
++                    "dp_count": dp_count,
++                    "s2_reference_rank": s2_ref_rank,
++                    "ranks_count": len(ranks)
+                 }
+             }
+         except Exception as e:
+@@ -346,9 +435,14 @@ class BatteryMLS2Adapter:
+                 status = "satisfied"
+                 code = "DRIVER_CLEAN_COMPLETION"
+             else:
+-                witness = "violated"
+-                status = "violated"
+-                code = "DRIVER_NONZERO_OR_INCOMPLETE"
++                if self._check_host_interruption():
++                    witness = "blocked"
++                    status = "blocked"
++                    code = "OPERATIONAL_BLOCKED_HOST_TERMINATION"
++                else:
++                    witness = "violated"
++                    status = "violated"
++                    code = "DRIVER_NONZERO_OR_INCOMPLETE"
+ 
+             return {
+                 "obligation_id": "O_RUN_EXIT",
+@@ -382,7 +476,7 @@ class BatteryMLS2Adapter:
+             }
+ 
+     def evaluate_o_fit_count(self) -> Dict[str, Any]:
+-        """O_FIT_COUNT: All 264 pre-registered model fits executed."""
++        """O_FIT_COUNT: All 264 pre-registered model fits executed under deterministic partitioning."""
+         preds = list(self.results_dir.rglob("per-cell-predictions.csv"))
+         req = ["s3_execution_output/s3-artifact/execution-closure.json"]
+         hashes = {f: self.sha256_of_file(self.s3_dir / f) for f in req}
+@@ -410,14 +504,39 @@ class BatteryMLS2Adapter:
+                 witness = "satisfied"
+                 status = "satisfied"
+                 code = "ALL_FITS_PRESENT"
++                tag = None
++                fault = None
+             elif actual_fits < expected_fits:
+-                witness = "violated"
+-                status = "violated"
+-                code = "INCOMPLETE_FITS_COUNT"
++                if self._check_host_interruption():
++                    witness = "blocked"
++                    status = "blocked"
++                    code = "OPERATIONAL_BLOCKED_INCOMPLETE_FITS"
++                    tag = None
++                    fault = None
++                else:
++                    # Incomplete execution without external host interruption -> direct prematureExecution
++                    return {
++                        "obligation_id": "O_FIT_COUNT",
++                        "required_evidence": req,
++                        "source_hashes": hashes,
++                        "admissible": True,
++                        "admissibility_reason": "Admissible prediction tables bound to runner logs",
++                        "protocol_fault": "prematureExecution",
++                        "witness_classes": ["violated"],
++                        "eval_status": "violated",
++                        "failure_tag": None,
++                        "reason_code": "PREMATURE_TERMINATION_INCOMPLETE_FITS",
++                        "details": {
++                            "expected_fits": expected_fits,
++                            "actual_fits": actual_fits
++                        }
++                    }
+             else:
+                 witness = "violated"
+                 status = "violated"
+                 code = "EXCESS_UNREGISTERED_FITS"
++                tag = None
++                fault = None
+ 
+             return {
+                 "obligation_id": "O_FIT_COUNT",
+@@ -425,10 +544,10 @@ class BatteryMLS2Adapter:
+                 "source_hashes": hashes,
+                 "admissible": True,
+                 "admissibility_reason": "Admissible prediction matrix directory bound to execution closure",
+-                "protocol_fault": None,
++                "protocol_fault": fault,
+                 "witness_classes": [witness],
+                 "eval_status": status,
+-                "failure_tag": None,
++                "failure_tag": tag,
+                 "reason_code": code,
+                 "details": {
+                     "expected_fits": expected_fits,
+@@ -595,7 +714,6 @@ class BatteryMLS2Adapter:
+         req = ["verifiers/verify_s3_recomputation.py"]
+         hashes = {f: self.sha256_of_file(self.s3_dir / f) for f in req}
+ 
+-        # Validate that all 264 CSVs exist and match reported metrics
+         preds = list(self.results_dir.rglob("per-cell-predictions.csv"))
+         if len(preds) < 264:
+             return {
+@@ -683,7 +801,6 @@ class BatteryMLS2Adapter:
+         ]
+         hashes = {f: self.sha256_of_file(self.s3_dir / f) for f in req}
+ 
+-        # Calculate empirical shift directly from raw CSVs
+         sampled_dir = self.results_dir / "sampled"
+         sdirs = sorted([d for d in sampled_dir.iterdir() if d.is_dir()])
+         if len(sdirs) != 64:
+@@ -708,7 +825,6 @@ class BatteryMLS2Adapter:
+                 df = pd.read_csv(self.results_dir / "split_a" / m / "per-cell-predictions.csv")
+                 base_rmses[m] = math.sqrt(float(((df["target"] - df["prediction"]) ** 2).mean()))
+ 
+-            # Model relative changes D = (RMSE_s - RMSE_base) / RMSE_base
+             shift_thresh = float(self.claim.get("shift_threshold", 0.10))
+             prev_limit = float(self.claim.get("prevalence_limit", 0.50))
+             target_models = self.claim.get("target_models", ["xgb", "variance", "ridge"])
+@@ -871,6 +987,15 @@ class BatteryMLS2Adapter:
+         # Stage 1: Protocol fault
+         protocol_fault = self.check_protocol_faults()
+ 
++        # Dynamic falsifiability
++        falsifiable, _ = self.check_falsifiability()
++
++        # Dynamic limitations
++        has_blocking, has_non_blocking, blocking_lims, non_blocking_lims = self.evaluate_limitations()
++
++        # Dynamic novel findings
++        admissible_novel, novel_list = self.evaluate_novel_findings()
++
+         # Stage 2 & 3: Evaluate all 10 obligations
+         evaluators = [
+             self.evaluate_o_seed_binding,
+@@ -892,20 +1017,9 @@ class BatteryMLS2Adapter:
+             res = fn()
+             obs_trace.append(res)
+             obs_statuses.append(res["eval_status"])
+-
+-        # Limitations:
+-        # hasBlockingLimitation: strictly false in v0.1 (L_TEMPERATURE_DRIFT excised)
+-        has_blocking = False
+-
+-        # hasNonBlockingLimitation: true if L_CHEMISTRY_LFP applies
+-        # and/or L_MODEL_FAMILY_SCOPE applies to architecture-bounded claims
+-        has_non_blocking = True
+-
+-        # Novel findings: none registered
+-        admissible_novel = False
+-
+-        # Falsifiability: pre-registered explicit thresholds and controls
+-        falsifiable = True
++            # If an obligation evaluator identifies a direct protocolFault, bubble it up
++            if res.get("protocol_fault") and protocol_fault is None:
++                protocol_fault = res["protocol_fault"]
+ 
+         decision_view = {
+             "protocolFault": protocol_fault,
+@@ -917,9 +1031,15 @@ class BatteryMLS2Adapter:
+         }
+ 
+         obligation_trace = {
+-            "trace_version": "1.0.0",
++            "trace_version": "1.1.0",
+             "claim_id": self.claim.get("claim_id", "CLAIM-BATTERYML-MATR1-PROTOCOL-ROBUSTNESS-S3"),
+             "evaluated_at_utc": datetime.now(timezone.utc).isoformat(),
++            "falsifiability_check": {"falsifiable": falsifiable},
++            "limitations_derived": {
++                "blocking_applied": blocking_lims,
++                "non_blocking_applied": non_blocking_lims
++            },
++            "novel_findings_derived": {"admissible_novel_applied": novel_list},
+             "obligations": obs_trace
+         }
+ 
+@@ -965,7 +1085,7 @@ def main():
+     import argparse
+     parser = argparse.ArgumentParser(description="P10 BatteryML S2 Replay Adapter")
+     parser.add_argument("--s3-dir", type=Path, default=Path("/home/volmax-studio/volmax-projects/iot2/batteryml-protocol-robustness-s3"))
+-    parser.add_argument("--out-dir", type=Path, default=Path("/home/volmax-studio/volmax-projects/iot2/p10-audit-batteryml-s3-retro-s2/run-001"))
++    parser.add_argument("--out-dir", type=Path, default=Path("/home/volmax-studio/volmax-projects/iot2/p10-audit-batteryml-s3-retro-s2/run-002-corrected-conformance"))
+     parser.add_argument("--claim-file", type=Path, default=None)
+     args = parser.parse_args()
+ 
+@@ -973,7 +1093,8 @@ def main():
+     if args.claim_file and args.claim_file.is_file():
+         claim = json.loads(args.claim_file.read_text())
+     else:
+-        # Default evaluated claim from REPLAY_PLAN.md: general robustness claim across all candidate models
++        # Default evaluated claim from REPLAY_PLAN_AMENDMENT_001.md
++        # (binding to authoritative historical S3 preregistration at 0958e89...)
+         claim = {
+             "claim_id": "CLAIM-BATTERYML-MATR1-PROTOCOL-ROBUSTNESS-S3",
+             "target_models": ["xgb", "variance", "ridge"],

@@ -1,17 +1,29 @@
-# Retrospective Replay Report: BatteryML S3 under P10-Core S2
+# Retrospective Replay Report: BatteryML S3 under P10-Core S2 (Run-001)
 
 **Report Identifier:** `REPORT-P10-AUDIT-BATTERYML-S3-RETRO-S2-RUN-001`  
 **Date:** 2026-09-20  
 **Authority:** VolMax Studio Lab & Adjudication Working Group  
-**Status:** **RATIFIED / COMPLETE**  
+**Status:** **INVALIDATED / PROTOCOL FRACTURE (SEE [FAILURES.md](file:///home/volmax-studio/volmax-projects/iot2/p10-audit-batteryml-s3-retro-s2/FAILURES.md))**  
 **Epistemic Category:** Retrospective Conformance Deployment (Non-Confirmatory Field Demonstration)  
 **Parent Framework:** P10-Core v0.3 — S2 Semantic Core  
 
 ---
 
+> [!CAUTION]
+> **RUN-001 STATUS: INVALIDATED**  
+> This run execution was formally blocked and invalidated during gate audit due to:
+> 1. `F-R01`: Replay plan transcription fracture (`0.05/0.05` frozen plan vs `0.10/0.50` executed);
+> 2. `F-R02`: Post-freeze adapter mutation (adapter edited and re-run after intermediate output inspection);
+> 3. `F-R03`: Governance regression (unauthorized self-assignment of "RATIFIED / COMPLETE");
+> 4. `F-R04`: Trust boundary and falsifiability overclaims.
+>
+> The artifacts of run-001 are preserved verbatim as historical evidence in `run-001/` and `FAILURES.md`. Clean conformance is executed under `run-002-corrected-conformance`.
+
+---
+
 ## 1. Executive Summary & Epistemic Demarcation
 
-$$\boxed{\textbf{RETROSPECTIVE CONFORMANCE DEPLOYMENT} \neq \textbf{NEW CONFIRMATORY BATTERY RESULT}}$$
+$$\boxed{\textbf{RUN-001: INVALIDATED AS CONFORMANCE EXECUTION}}$$
 
 This deployment represents the first complete end-to-end execution of the **P10 S2 Adjudication Automaton** over an empirical machine learning study.
 
