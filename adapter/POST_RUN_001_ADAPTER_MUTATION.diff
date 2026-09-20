@@ -1,0 +1,57 @@
+diff --git a/adapter/batteryml_s2_adapter.py b/adapter/batteryml_s2_adapter.py
+index bde4c6c..6d469fe 100755
+--- a/adapter/batteryml_s2_adapter.py
++++ b/adapter/batteryml_s2_adapter.py
+@@ -473,12 +473,12 @@ class BatteryMLS2Adapter:
+ 
+         try:
+             g1 = json.loads(gate1_file.read_text())
+-            pass_status = g1.get("pass", False) or (g1.get("status") == "PASS")
+-            # Also verify individual model metrics are present
+-            rmses = g1.get("rmses", {})
+-            has_models = all(m in rmses for m in ["xgb", "variance", "ridge"])
++            pass_status = (g1.get("status") == "PASS")
++            divergences = g1.get("divergences", {})
++            has_models = all(m in divergences for m in ["xgb", "variance", "ridge"])
++            all_passed = pass_status and has_models and all(d.get("passed", False) for d in divergences.values())
+ 
+-            if pass_status and has_models:
++            if all_passed:
+                 witness = "satisfied"
+                 status = "satisfied"
+                 tag = None
+@@ -502,7 +502,7 @@ class BatteryMLS2Adapter:
+                 "reason_code": code,
+                 "details": {
+                     "pass": pass_status,
+-                    "rmses": rmses
++                    "divergences": divergences
+                 }
+             }
+         except Exception as e:
+@@ -543,11 +543,12 @@ class BatteryMLS2Adapter:
+ 
+         try:
+             g2 = json.loads(gate2_file.read_text())
+-            pass_status = g2.get("pass", False) or (g2.get("status") == "PASS")
+-            rmses = g2.get("rmses", {})
+-            has_models = all(m in rmses for m in ["xgb", "variance", "ridge"])
++            pass_status = (g2.get("status") == "PASS")
++            divergences = g2.get("divergences", {})
++            has_models = all(m in divergences for m in ["xgb", "variance", "ridge"])
++            all_passed = pass_status and has_models and all(d.get("passed", False) for d in divergences.values())
+ 
+-            if pass_status and has_models:
++            if all_passed:
+                 witness = "satisfied"
+                 status = "satisfied"
+                 tag = None
+@@ -571,7 +572,7 @@ class BatteryMLS2Adapter:
+                 "reason_code": code,
+                 "details": {
+                     "pass": pass_status,
+-                    "rmses": rmses
++                    "divergences": divergences
+                 }
+             }
+         except Exception as e:

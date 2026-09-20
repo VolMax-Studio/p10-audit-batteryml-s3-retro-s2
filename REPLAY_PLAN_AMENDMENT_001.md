@@ -4,7 +4,7 @@
 **Date:** 2026-09-20  
 **Authority:** VolMax Studio Lab & Adjudication Working Group  
 **Target Document:** `REPLAY_PLAN.md` (§4 Evaluated Claim Definition)  
-**Status:** **ACTIVE / RATIFIED PRE-EXECUTION AMENDMENT FOR RUN-002**  
+**Status:** **ACTIVE / PENDING OPERATOR RATIFICATION**  
 
 ---
 
@@ -32,11 +32,12 @@ metrics:
   material_prevalence: 0.50
 ```
 
-and in the formal adjudication logic definition:
+and implemented in the study's execution script `s3_adjudication.py` (lines 188–199):
 
-```text
+```python
+# Evaluates material prevalence using threshold 0.10 and prevalence limit 0.50
 p_abs_m = fraction(|D_RMSE| >= 0.10)
-material_prevalent_m := p_abs_m >= 0.50
+material_prevalent_m := (p_abs_m >= 0.50)
 ```
 
 ---

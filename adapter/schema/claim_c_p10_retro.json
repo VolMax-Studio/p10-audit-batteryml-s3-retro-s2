@@ -1,0 +1,22 @@
+{
+  "claim_id": "CLAIM-C-P10-RETRO-CONJUNCTIVE-ROBUSTNESS",
+  "provenance_note": "Auditor-constructed P10 retrospective conjunctive claim over historical S3 evidence. This claim asserts simultaneous robustness across all candidate architectures ['xgb', 'variance', 'ridge'] under positive degradation (D > 0.10). It is distinct from the target study's native categorization logic in s3_adjudication.py, which evaluated to MODEL_SPECIFIC under two-sided |D| >= 0.10.",
+  "target_models": [
+    "xgb",
+    "variance",
+    "ridge"
+  ],
+  "split_type": "Minimum-Cost Protocol-Disjoint Cell Partition (K=64)",
+  "cell_population": "Severson et al. (2019) LFP Commercial Cells (MATR1)",
+  "shift_threshold": 0.10,
+  "shift_direction": "positive_degradation_only",
+  "prevalence_limit": 0.50,
+  "gating_controls": [
+    "Split A Baseline (Gate 1)",
+    "Reference Split B (Gate 2)"
+  ],
+  "dummy_parameters": {
+    "dummy_skill_margin": 0.0,
+    "required_separation_prevalence": 0.95
+  }
+}

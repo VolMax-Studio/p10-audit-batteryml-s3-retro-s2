@@ -4,6 +4,7 @@
   "type": "object",
   "properties": {
     "claim_id": { "type": "string" },
+    "provenance_note": { "type": "string" },
     "target_models": {
       "type": "array",
       "items": { "type": "string" },
@@ -12,10 +13,19 @@
     "split_type": { "type": "string" },
     "cell_population": { "type": "string" },
     "shift_threshold": { "type": "number" },
+    "shift_direction": { "type": "string" },
     "prevalence_limit": { "type": "number" },
     "gating_controls": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "dummy_parameters": {
+      "type": "object",
+      "properties": {
+        "dummy_skill_margin": { "type": "number" },
+        "required_separation_prevalence": { "type": "number" }
+      },
+      "required": ["dummy_skill_margin", "required_separation_prevalence"]
     }
   },
   "required": [
