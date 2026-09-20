@@ -1,0 +1,91 @@
+{
+  "trace_id": "TRACE-BATTERYML-S3-RETRO-S2-RUN-003",
+  "evaluated_at_utc": "2026-09-20T14:31:10.000000+00:00",
+  "target_instance": {
+    "repository": "https://github.com/VolMax-Studio/batteryml-protocol-robustness-s3",
+    "governing_commit": "4bdf33e27f3c8e1e22583ae41c13b096a81e5e38",
+    "tag": "v1.0.0",
+    "preregistration_commit": "0958e89a0e994ed9923da26e04e1f4bfb956ab7f"
+  },
+  "provenance_anchors": {
+    "frozen_s2_core_commit": "fa7878a538f56ee9b3c8008ca71e93c04c69ecf4",
+    "frozen_s2_core_tag": "v0.3.0-s2-freeze",
+    "frozen_domain_profile_commit": "dd88e6222fc717b557b7b5c2ebf6b1d725b50891",
+    "frozen_domain_profile_tag": "batteryml-s2-profile-v0.1-retro-freeze",
+    "frozen_domain_profile_digest": "d120f64339cd4a5eac8dd8ff26a3501986cdd7a36ddaa5632747bc84b0468f49",
+    "adapter_source_commit": "e952f0025b22a14ae9f7ff93d8c4202afbdbc3c0",
+    "adapter_manifest_sha256": "1c0ef1766d17aa09ae013fa0b1fdd6c43d5c4bf58430967d84a9b863b3bc2841",
+    "prediction_input_manifest_sha256": "57c55989de3545254d42b9fb801e3dd20155a78cfb1126266aa44f5a1ce298c8",
+    "governing_amendment": "AMENDMENT-002-P10-AUDIT-BATTERYML-S3-RETRO-S2"
+  },
+  "evaluated_claim": {
+    "claim_id": "CLAIM-C-P10-RETRO-CONJUNCTIVE-ROBUSTNESS",
+    "provenance_note": "Auditor-constructed P10 retrospective conjunctive claim over historical S3 evidence asserting simultaneous robustness across ['xgb', 'variance', 'ridge'] under positive degradation (D > 0.10). Distinct from S3's native 4-category logic (s3_adjudication.py), which yielded MODEL_SPECIFIC under two-sided |D| >= 0.10.",
+    "target_models": ["xgb", "variance", "ridge"],
+    "split_type": "Minimum-Cost Protocol-Disjoint Cell Partition (K=64)",
+    "cell_population": "Severson et al. (2019) LFP Commercial Cells (MATR1)",
+    "shift_threshold": 0.10,
+    "shift_direction": "positive_degradation_only",
+    "prevalence_limit": 0.50,
+    "gating_controls": ["Split A Baseline (Gate 1)", "Reference Split B (Gate 2)"],
+    "dummy_parameters": {
+      "dummy_skill_margin": 0.0,
+      "required_separation_prevalence": 0.95
+    }
+  },
+  "decision_view": {
+    "protocolFault": null,
+    "falsifiable": true,
+    "obligations": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "violated",
+      "satisfied"
+    ],
+    "hasBlockingLimitation": false,
+    "hasNonBlockingLimitation": true,
+    "admissibleNovelFinding": false
+  },
+  "formal_adjudication": {
+    "engine": "Lean 4.34.0 (Lake 5.0.0)",
+    "automaton_module": "P10Core.Model.AdjudicationAutomaton",
+    "automaton_function": "P10Core.Model.AdjudicationAutomaton.adjudicate",
+    "step_executed": "Step 2 (Violated Obligation Precedence)",
+    "terminal_outcome": {
+      "kind": "VERDICT",
+      "verdict": "NotVerified",
+      "lean_representation": "P10Core.Model.AdjudicationAutomaton.TerminalOutcome.verdict (P10Core.Model.AdjudicationAutomaton.S2Verdict.notVerified)"
+    }
+  },
+  "trust_boundary_disclosure": "The empirical classification of raw BatteryML evidence and CSV recalculations are performed by the external domain adapter. The Lean-verified S2 core formally governs only the deterministic precedence traversal and terminal adjudication of the resulting normalized DecisionView.",
+  "epistemic_disposition": {
+    "substantive_refutation_of_p10_claim": true,
+    "relationship_to_target_native_adjudication": "The target study's native adjudication logic (s3_adjudication.py) yields MODEL_SPECIFIC under two-sided relative error shift (|D| >= 0.10, where only Ridge exceeds 0.50). The P10 retrospective claim C_P10_RETRO asserts a strictly conjunctive robustness requirement across all candidate architectures. Under C_P10_RETRO, Ridge's positive degradation rate of 85.94% (55/64) violates the conjunction, producing NotVerified. The two outcomes answer distinct formal claims over the identical cryptographically bound dataset.",
+    "violating_obligations": ["O_STATISTICAL_PREVALENCE"],
+    "failure_tags": ["F_THRESHOLD_EXCEEDED"],
+    "checker_measurements": {
+      "xgb": {
+        "positive_degradation_splits": "18/64 (p_pos = 0.28125 <= 0.50)",
+        "two_sided_shift_splits": "28/64 (p_abs = 0.43750 <= 0.50)",
+        "status": "satisfied"
+      },
+      "variance": {
+        "positive_degradation_splits": "19/64 (p_pos = 0.296875 <= 0.50)",
+        "two_sided_shift_splits": "20/64 (p_abs = 0.31250 <= 0.50)",
+        "status": "satisfied"
+      },
+      "ridge": {
+        "positive_degradation_splits": "55/64 (p_pos = 0.859375 > 0.50)",
+        "two_sided_shift_splits": "58/64 (p_abs = 0.90625 > 0.50)",
+        "status": "violated"
+      }
+    },
+    "strict_non_softening_enforcement": "Enforced. Although hasNonBlockingLimitation was derived as true (due to L_CHEMISTRY_LFP), S2 Step 2 immediately issued NotVerified upon encountering O_STATISTICAL_PREVALENCE = violated, completely bypassing limitation evaluation at Step 6."
+  }
+}
