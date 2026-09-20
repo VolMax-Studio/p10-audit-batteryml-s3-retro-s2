@@ -1,0 +1,309 @@
+{
+  "trace_version": "1.0.0",
+  "claim_id": "CLAIM-BATTERYML-MATR1-PROTOCOL-ROBUSTNESS-S3",
+  "evaluated_at_utc": "2026-09-20T13:03:11.373208+00:00",
+  "obligations": [
+    {
+      "obligation_id": "O_SEED_BINDING",
+      "required_evidence": [
+        "s3-sampler-ranks.json",
+        "s3_execution_output/s3-artifact/execution-closure.json"
+      ],
+      "source_hashes": {
+        "s3-sampler-ranks.json": "43ae754eabe156f000f1929e5a12c1aa89f889b0fe31c774a330bac39cc200ae",
+        "s3_execution_output/s3-artifact/execution-closure.json": "a341e143bb5f6e7f0e07db7485bfbbf92e09cb84cae52539bb3a7c1cb8c8c0a8"
+      },
+      "admissible": true,
+      "admissibility_reason": "Schema-valid closure metadata containing cryptographic seed bindings",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "SEED_AND_SAMPLER_VERIFIED",
+      "details": {
+        "runtime_draw_order_hash": "1d84b7bf864945a26ec0a5d2feec754b6ed6b4bf50b9f4e5b02bc45720b0ff02",
+        "expected_draw_order_hash": "1d84b7bf864945a26ec0a5d2feec754b6ed6b4bf50b9f4e5b02bc45720b0ff02",
+        "dp_count": 185471
+      }
+    },
+    {
+      "obligation_id": "O_HASH_TEST_MEMBERSHIP",
+      "required_evidence": [
+        "s3-test-membership-commitment.csv",
+        "s3-split-manifest.csv"
+      ],
+      "source_hashes": {
+        "s3-test-membership-commitment.csv": "53a157ecd49c0a238cd5028c6ab840431a7ecb600b067290ee51645820cb5ada",
+        "s3-split-manifest.csv": "cf9c269a93053e64ecf9200e0ee704fb0c32d2787f721fc24f0cb711cdc33895"
+      },
+      "admissible": true,
+      "admissibility_reason": "Well-formed CSV partition commitment tables bound to run",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "MEMBERSHIP_HASH_VERIFIED",
+      "details": {
+        "computed_membership_hash": "53a157ecd49c0a238cd5028c6ab840431a7ecb600b067290ee51645820cb5ada",
+        "expected_membership_hash": "53a157ecd49c0a238cd5028c6ab840431a7ecb600b067290ee51645820cb5ada",
+        "computed_split_hash": "cf9c269a93053e64ecf9200e0ee704fb0c32d2787f721fc24f0cb711cdc33895",
+        "expected_split_hash": "cf9c269a93053e64ecf9200e0ee704fb0c32d2787f721fc24f0cb711cdc33895"
+      }
+    },
+    {
+      "obligation_id": "O_CONTROL_DATASET_BINDING",
+      "required_evidence": [
+        "s3_execution_output/post-run-binding-receipt.json",
+        "s3_execution_output/control-dataset-files.sha256"
+      ],
+      "source_hashes": {
+        "s3_execution_output/post-run-binding-receipt.json": "1ad8fdc4dcddbd28cd5f99e20c67f5babbd80d2e9ec7791b7a11db5d7847de81",
+        "s3_execution_output/control-dataset-files.sha256": "9da5f90c5f4962a873bc49403b1f0a8cb1a20607748386120794bf63f8acd26d"
+      },
+      "admissible": true,
+      "admissibility_reason": "Authentic timestamped remote host API receipt",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "CONTROL_DATASET_CUSTODY_VERIFIED",
+      "details": {
+        "bound_version": 1,
+        "runtime_byte_match": true,
+        "runtime_file_count": 218
+      }
+    },
+    {
+      "obligation_id": "O_RUN_EXIT",
+      "required_evidence": [
+        "s3_execution_output/batteryml-protocol-robustness-s3-run.log",
+        "s3_execution_output/s3-artifact/completion-receipt.json"
+      ],
+      "source_hashes": {
+        "s3_execution_output/batteryml-protocol-robustness-s3-run.log": "f56651a2e6abda9c2e35b0fe73934d5d5b37189a3f63f2373a4d62e799fca7f2",
+        "s3_execution_output/s3-artifact/completion-receipt.json": "71d6c8154c46e9c8f6ca79e9b3a614f6d434ab53c0c42ec38310fc961b1dc4ac"
+      },
+      "admissible": true,
+      "admissibility_reason": "Complete uncorrupted host runner log and termination receipt",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "DRIVER_CLEAN_COMPLETION",
+      "details": {
+        "completion_status": "COMPLETE",
+        "total_files": 1389
+      }
+    },
+    {
+      "obligation_id": "O_FIT_COUNT",
+      "required_evidence": [
+        "s3_execution_output/s3-artifact/execution-closure.json"
+      ],
+      "source_hashes": {
+        "s3_execution_output/s3-artifact/execution-closure.json": "a341e143bb5f6e7f0e07db7485bfbbf92e09cb84cae52539bb3a7c1cb8c8c0a8"
+      },
+      "admissible": true,
+      "admissibility_reason": "Admissible prediction matrix directory bound to execution closure",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "ALL_FITS_PRESENT",
+      "details": {
+        "expected_fits": 264,
+        "actual_fits": 264
+      }
+    },
+    {
+      "obligation_id": "O_CTRL_GATE1",
+      "required_evidence": [
+        "s3_execution_output/s3-artifact/gate-1-positive-control-a.json"
+      ],
+      "source_hashes": {
+        "s3_execution_output/s3-artifact/gate-1-positive-control-a.json": "5b5cd2d88248b04f0fec52ce9a8b7807b84fec4bc3ab6192011e95b6ca69bf8b"
+      },
+      "admissible": true,
+      "admissibility_reason": "Complete evaluation table for Split A positive control",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "GATE1_BASELINE_REPRODUCED",
+      "details": {
+        "pass": true,
+        "divergences": {
+          "ridge": {
+            "observed_rmse": 115.78918204213629,
+            "passed": true,
+            "reference_rmse": 115.78919623655567,
+            "relative_diff": 1.2258846109921876e-07
+          },
+          "variance": {
+            "observed_rmse": 136.12960815429688,
+            "passed": true,
+            "reference_rmse": 136.12960815429688,
+            "relative_diff": 0.0
+          },
+          "xgb": {
+            "observed_rmse": 333.6645812988281,
+            "passed": true,
+            "reference_rmse": 333.66455078125,
+            "relative_diff": 9.146185309031309e-08
+          }
+        }
+      }
+    },
+    {
+      "obligation_id": "O_CTRL_GATE2",
+      "required_evidence": [
+        "s3_execution_output/s3-artifact/gate-2-reference-split-b.json"
+      ],
+      "source_hashes": {
+        "s3_execution_output/s3-artifact/gate-2-reference-split-b.json": "e2be8d7b1ae8c1b439c0ce6b0f99493e8c2d95b5a8ea823d5ce0e03fd4a136a9"
+      },
+      "admissible": true,
+      "admissibility_reason": "Complete evaluation table for Ref B calibration control",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "GATE2_REFERENCE_REPRODUCED",
+      "details": {
+        "pass": true,
+        "divergences": {
+          "ridge": {
+            "observed_rmse": 138.50330279420845,
+            "passed": true,
+            "reference_rmse": 138.50330213051572,
+            "relative_diff": 4.791891029212562e-09
+          },
+          "variance": {
+            "observed_rmse": 133.47593688964844,
+            "passed": true,
+            "reference_rmse": 133.47593688964844,
+            "relative_diff": 0.0
+          },
+          "xgb": {
+            "observed_rmse": 345.946044921875,
+            "passed": true,
+            "reference_rmse": 345.9460754394531,
+            "relative_diff": 8.821484124724847e-08
+          }
+        }
+      }
+    },
+    {
+      "obligation_id": "O_RECOMPUTE_PREDICTIONS",
+      "required_evidence": [
+        "verifiers/verify_s3_recomputation.py"
+      ],
+      "source_hashes": {
+        "verifiers/verify_s3_recomputation.py": "eb67c13743e1d54276451d605624b4cca8f66bc2c1a97ab50d2c0da2cecb40ee"
+      },
+      "admissible": true,
+      "admissibility_reason": "Raw per-cell CSV tables successfully ingested out-of-process",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "ALL_264_FITS_RECOMPUTED_MATCH",
+      "details": {
+        "total_checked": 264,
+        "mismatches_count": 0,
+        "first_mismatches": []
+      }
+    },
+    {
+      "obligation_id": "O_STATISTICAL_PREVALENCE",
+      "required_evidence": [
+        "s3_execution_output/governing-adjudication.json",
+        "s3_execution_output/s3-artifact/adjudication_candidate.json"
+      ],
+      "source_hashes": {
+        "s3_execution_output/governing-adjudication.json": "36df005f7f6a8bfa1b40f28e2f003e0c52e96d6a86aa2a321783cfc190ed286f",
+        "s3_execution_output/s3-artifact/adjudication_candidate.json": "a646c4915c5a6f969175797b87dcbad0945ba88288f6b35fccd5d0b47e203d7e"
+      },
+      "admissible": true,
+      "admissibility_reason": "Clean-room distribution table derived from verified prediction files",
+      "protocol_fault": null,
+      "witness_classes": [
+        "violated"
+      ],
+      "eval_status": "violated",
+      "failure_tag": "F_THRESHOLD_EXCEEDED",
+      "reason_code": "THRESHOLD_EXCEEDED_FOR_RIDGE",
+      "details": {
+        "shift_threshold": 0.1,
+        "prevalence_limit": 0.5,
+        "target_models": [
+          "xgb",
+          "variance",
+          "ridge"
+        ],
+        "model_prevalence": {
+          "xgb": {
+            "material_count": 18,
+            "total_splits": 64,
+            "prevalence": 0.28125,
+            "exceeds_limit": false
+          },
+          "variance": {
+            "material_count": 19,
+            "total_splits": 64,
+            "prevalence": 0.296875,
+            "exceeds_limit": false
+          },
+          "ridge": {
+            "material_count": 55,
+            "total_splits": 64,
+            "prevalence": 0.859375,
+            "exceeds_limit": true
+          }
+        },
+        "violating_models": [
+          "ridge"
+        ]
+      }
+    },
+    {
+      "obligation_id": "O_DUMMY_BENCHMARK_SEPARATION",
+      "required_evidence": [
+        "s3_execution_output/governing-adjudication.json"
+      ],
+      "source_hashes": {
+        "s3_execution_output/governing-adjudication.json": "36df005f7f6a8bfa1b40f28e2f003e0c52e96d6a86aa2a321783cfc190ed286f"
+      },
+      "admissible": true,
+      "admissibility_reason": "Dummy and candidate models evaluated on identical test splits",
+      "protocol_fault": null,
+      "witness_classes": [
+        "satisfied"
+      ],
+      "eval_status": "satisfied",
+      "failure_tag": null,
+      "reason_code": "DUMMY_BENCHMARK_SEPARATION_VERIFIED",
+      "details": {
+        "total_comparisons": 192,
+        "inversions": 1,
+        "separation_rate": 0.9947916666666666
+      }
+    }
+  ]
+}

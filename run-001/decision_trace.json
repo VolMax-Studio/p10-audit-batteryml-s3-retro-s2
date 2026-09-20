@@ -1,0 +1,64 @@
+{
+  "trace_id": "TRACE-BATTERYML-S3-RETRO-S2-RUN-001",
+  "evaluated_at_utc": "2026-09-20T13:03:21.000000+00:00",
+  "target_instance": {
+    "repository": "https://github.com/VolMax-Studio/batteryml-protocol-robustness-s3",
+    "governing_commit": "4bdf33e27f3c8e1e22583ae41c13b096a81e5e38",
+    "tag": "v1.0.0",
+    "preregistration_commit": "0958e89a0e994ed9923da26e04e1f4bfb956ab7f"
+  },
+  "provenance_anchors": {
+    "frozen_s2_core_commit": "fa7878a538f56ee9b3c8008ca71e93c04c69ecf4",
+    "frozen_s2_core_tag": "v0.3.0-s2-freeze",
+    "frozen_domain_profile_commit": "dd88e6222fc717b557b7b5c2ebf6b1d725b50891",
+    "frozen_domain_profile_tag": "batteryml-s2-profile-v0.1-retro-freeze",
+    "frozen_domain_profile_digest": "d120f64339cd4a5eac8dd8ff26a3501986cdd7a36ddaa5632747bc84b0468f49",
+    "adapter_source_commit": "c3f9349c719e7a85dfae1a7b45f1b138cf0dbb3b"
+  },
+  "evaluated_claim": {
+    "claim_id": "CLAIM-BATTERYML-MATR1-PROTOCOL-ROBUSTNESS-S3",
+    "target_models": ["xgb", "variance", "ridge"],
+    "split_type": "Minimum-Cost Protocol-Disjoint Cell Partition (K=64)",
+    "cell_population": "Severson et al. (2019) LFP Commercial Cells (MATR1)",
+    "shift_threshold": 0.10,
+    "prevalence_limit": 0.50,
+    "gating_controls": ["Split A Baseline (Gate 1)", "Reference Split B (Gate 2)"]
+  },
+  "decision_view": {
+    "protocolFault": null,
+    "falsifiable": true,
+    "obligations": [
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "satisfied",
+      "violated",
+      "satisfied"
+    ],
+    "hasBlockingLimitation": false,
+    "hasNonBlockingLimitation": true,
+    "admissibleNovelFinding": false
+  },
+  "formal_adjudication": {
+    "engine": "Lean 4.34.0 (Lake 5.0.0)",
+    "automaton_module": "P10Core.Model.AdjudicationAutomaton",
+    "automaton_function": "P10Core.Model.AdjudicationAutomaton.adjudicate",
+    "step_executed": "Step 2 (Violated Obligation Precedence)",
+    "terminal_outcome": {
+      "kind": "VERDICT",
+      "verdict": "NotVerified",
+      "lean_representation": "P10Core.Model.AdjudicationAutomaton.TerminalOutcome.verdict (P10Core.Model.AdjudicationAutomaton.S2Verdict.notVerified)"
+    }
+  },
+  "epistemic_disposition": {
+    "substantive_refutation": true,
+    "violating_obligations": ["O_STATISTICAL_PREVALENCE"],
+    "failure_tags": ["F_THRESHOLD_EXCEEDED"],
+    "rationale": "Claim asserted general protocol-disjoint robustness across all three candidate model families ['xgb', 'variance', 'ridge']. While XGBoost (p = 0.281) and Variance (p = 0.297) satisfied the 50% prevalence limit, Ridge regression exhibited severe protocol degradation across 55/64 splits (p = 0.8594 > 0.50), mathematically refuting the general claim.",
+    "strict_non_softening_invariant": "Enforced. Although hasNonBlockingLimitation was true (due to L_CHEMISTRY_LFP), S2 Step 2 immediately issued NotVerified upon encountering the violated obligation O_STATISTICAL_PREVALENCE, completely bypassing limitation evaluation at Step 6."
+  }
+}
