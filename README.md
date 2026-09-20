@@ -16,10 +16,10 @@ This deployment serves strictly as an **engineering qualification artifact**, de
 
 ## Core Findings & Epistemic Boundaries
 
-1. **Evaluated Claim Demarcation ($C_{\text{P10\_RETRO}}$ vs Native S3):**
-   - **Auditor-Instantiated Claim ($C_{\text{P10\_RETRO}}$):** A conjunctive robustness claim asserting that all three candidate architectures (`xgb`, `variance`, `ridge`) simultaneously maintain positive degradation $D \ge 0.10$ with prevalence $\le 50\%$.
+1. **Evaluated Claim Demarcation (`C_P10_RETRO` vs Native S3):**
+   - **Auditor-Instantiated Claim (`C_P10_RETRO`):** A conjunctive robustness claim asserting that all three candidate architectures (`xgb`, `variance`, `ridge`) simultaneously maintain positive degradation $D \ge 0.10$ with prevalence $\le 50\%$.
    - **Native S3 Cascade:** The target study evaluated a 4-category priority cascade under two-sided shift $|D| \ge 0.10$, yielding **`MODEL_SPECIFIC`** (since only Ridge breached prevalence).
-   - **Outcome:** Ridge's failure ($55/64 = 85.94\% > 50\%$) refutes the conjunctive claim $C_{\text{P10\_RETRO}}$ $\to$ **`NotVerified`**. S3's native `MODEL_SPECIFIC` category remains intact. The two engines evaluate different formal questions over the identical evidence base.
+   - **Outcome:** Ridge's failure ($55/64 = 85.94\% > 50\%$) refutes the conjunctive claim `C_P10_RETRO` $\to$ **`NotVerified`**. S3's native `MODEL_SPECIFIC` category remains intact. The two engines evaluate different formal questions over the identical evidence base.
 
 2. **Strict Non-Softening Enforcement:**
    The formal Lean 4 kernel (`p10-core@fa7878a...`) enforced that a `DecisionView` containing a violated obligation (`O_STATISTICAL_PREVALENCE`) terminated at Step 2 with `NotVerified`, strictly preempting Step 6 and preventing non-blocking limitation `L_CHEMISTRY_LFP` from softening the outcome to `VerifiedWithLimitations`.
