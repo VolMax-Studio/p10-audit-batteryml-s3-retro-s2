@@ -3,9 +3,12 @@
 **Report Identifier:** `REPORT-P10-AUDIT-BATTERYML-S3-RETRO-S2-RUN-003`  
 **Date:** 2026-09-20  
 **Authority:** VolMax Studio Lab & Adjudication Working Group  
-**Execution Status:** **EXECUTION COMPLETE / SPREMNO ZA HUMAN RATIFICATION**  
+**Gate Review Disposition:** **PASS WITH LIMITATIONS** (Independently corroborated from 264 raw prediction CSVs)  
+**Execution Status:** **PREPARED FOR HUMAN RATIFICATION**  
 **Ratification Status:** **PENDING OPERATOR (IVAN NESTOROV [L3]) RATIFICATION**  
 **Epistemic Category:** Retrospective Conformance Deployment over $C_{\text{P10\_RETRO}}$ (Field Demonstration)  
+**P10 Terminal Outcome:** **`NotVerified`**  
+**Native S3 Adjudication:** **`MODEL_SPECIFIC` (Unchanged)**  
 **Parent Framework:** P10-Core v0.3 — S2 Semantic Core  
 
 ---
@@ -26,14 +29,19 @@ This report records the clean execution of **Run-003**, conducted under the pre-
 A central finding established during gate review is the distinction between two formal claims evaluated on the same historical data:
 
 1. **Target Study Native Claim ($C_{\text{S3}}$):**
-   The historical study `batteryml-protocol-robustness-s3` pre-registered a 4-category adjudication cascade implemented in `s3_adjudication.py` (lines 188–199) using two-sided metric shift $p^{\text{abs}} = \Pr(|D| \ge 0.10)$. In S3, because exactly one model (Ridge) was materially prevalent ($58/64 = 90.63\% \ge 50\%$) while XGBoost ($28/64 = 43.75\%$) and Variance ($20/64 = 31.25\%$) remained below the limit, the study's native logic yielded:
+   The historical study `batteryml-protocol-robustness-s3` pre-registered a 4-category adjudication cascade implemented in `s3_adjudication.py` (lines 188–199) using two-sided metric shift $p^{\text{abs}} = \Pr(|D| \ge 0.10)$ (line 141). In S3, because exactly one model (Ridge) was materially prevalent ($58/64 = 90.63\% \ge 50\%$) while XGBoost ($28/64 = 43.75\%$) and Variance ($20/64 = 31.25\%$) remained below the limit, the study's native logic yielded:
    $$\boxed{\text{Native S3 Adjudication} \longrightarrow \textbf{MODEL\_SPECIFIC}}$$
    The target study did not formulate or assert a universal conjunctive claim across all models.
 
-2. **Auditor-Constructed P10 Retrospective Claim ($C_{\text{P10\_RETRO}}$):**
-   The P10 retrospective replay evaluates a strictly conjunctive robustness assertion over the historical split data:
-   $$C_{\text{P10\_RETRO}} := \bigwedge_{m \in \{\text{xgb}, \text{variance}, \text{ridge}\}} \left( \Pr\left(D_{m,s} > 0.10\right) \le 0.50 \right)$$
-   Where $D_{m,s} = \frac{\text{RMSE}_{m,s} - \text{RMSE}_{m,\text{base}}}{\text{RMSE}_{m,\text{base}}}$ represents **positive relative error degradation** relative to the Split A baseline.
+2. **Auditor-Instantiated P10 Retrospective Claim ($C_{\text{P10\_RETRO}}$):**
+   The P10 retrospective replay evaluates a conjunctive robustness assertion over the historical split data:
+   $$C_{\text{P10\_RETRO}} := \bigwedge_{m \in \{\text{xgb}, \text{variance}, \text{ridge}\}} \left( \Pr\left(D_{m,s} \ge 0.10\right) \le 0.50 \right)$$
+   Where $D_{m,s} = \frac{\text{RMSE}_{m,s} - \text{RMSE}_{m,\text{base}}}{\text{RMSE}_{m,\text{base}}}$ represents **positive relative error degradation** relative to the Split A baseline (aligned with `s3_adjudication.py:142`).
+   
+   - **Quantifier Provenance:** The conjunctive quantifier is pre-registered in the frozen profile (`P10-BatteryML-S2-Profile-v0.1.md:169`: *"Any model family in target_models has material shift prevalence $p > p_{\text{material}} \to \text{Violated}$"*).
+   - **Instantiation Scope:** The selection of `target_models = ["xgb", "variance", "ridge"]` and positive direction is the auditor's retrospective instantiation over historical MATR1 evidence.
+   - **Outcome Invariance of Comparator:** Recomputation over all 192 model-splits revealed zero splits landing on $D = 0.10$ exactly (nearest miss $2.8 \times 10^{-4}$), meaning $\operatorname{count}(D > 0.10) = \operatorname{count}(D \ge 0.10)$ identically.
+   
    Under $C_{\text{P10\_RETRO}}$, Ridge exhibits positive degradation on 55 out of 64 splits ($85.94\% > 50\%$). Under P10 conjunctive profile semantics, this single model failure evaluates `O_STATISTICAL_PREVALENCE` to `violated`.
 
 $$\boxed{\text{Terminal Outcome under } C_{\text{P10\_RETRO}} \longrightarrow \textbf{NotVerified}}$$
@@ -115,12 +123,12 @@ The adapter computed both the positive degradation metric ($D > 0.10$) specified
 Because $C_{\text{P10\_RETRO}}$ is strictly conjunctive across `target_models`, Ridge's breach of the $50\%$ prevalence ceiling evaluates `O_STATISTICAL_PREVALENCE` to `violated`.
 
 ### 4.2 Explicit Dummy Separation Verification (`O_DUMMY_BENCHMARK_SEPARATION`)
-Evaluated under explicit parameters declared in Amendment 002:
-- `dummy_skill_margin = 0.0` ($\text{RMSE}_{\text{dummy}} - \text{RMSE}_{\text{model}} > 0.0$)
-- `required_separation_prevalence = 0.95`
-- Total comparisons: 192 (64 splits $\times$ 3 candidate models)
-- Inversions observed: 1 (Ridge on Split 32 had $\text{RMSE}_{\text{ridge}} \ge \text{RMSE}_{\text{dummy}}$)
-- Achieved separation rate: $191 / 192 = 99.479\% \ge 95.000\%$
+Evaluated under parameters formalized in Amendment 002:
+- `required_separation_prevalence = 0.95` — **Provenance: Frozen Profile** (`spec/profiles/P10-BatteryML-S2-Profile-v0.1.md:176`);
+- `dummy_skill_margin = 0.0` ($\text{RMSE}_{\text{dummy}} - \text{RMSE}_{\text{model}} > 0.0$) — **Provenance: Auditor Retrospective Instantiation**;
+- Total comparisons: 192 (64 splits $\times$ 3 candidate models);
+- Inversions observed: 1 (Ridge on Split 32 had $\text{RMSE}_{\text{ridge}} \ge \text{RMSE}_{\text{dummy}}$);
+- Achieved separation rate: $191 / 192 = 99.479\% \ge 95.000\%$;
 - Evaluated status: **`satisfied`**.
 
 ---
@@ -183,18 +191,20 @@ Step 2 terminated immediately upon encountering `violated`. Even though `hasNonB
 
 ---
 
-## 6. Audit Lineage & Blocker Resolution Matrix
+## 6. Audit Lineage & Gate Resolution Matrix
 
-| Issue ID | Classification | Identified Defect | Resolution in Run-003 | Status |
+| Issue ID | Classification | Identified Defect | Resolution in Run-003 / Gate Closure | Status |
 |---|---|---|---|---|
-| **A-01** | Theorem Boundary / Claim Provenance | Auditor conjunctive claim confused with S3 native 4-category cascade. | Formalized $C_{\text{P10\_RETRO}}$ in Amendment 002; clarified that S3 native is `MODEL_SPECIFIC` while $C_{\text{P10\_RETRO}}$ is `NotVerified`. | **RESOLVED** |
+| **A-01** | Theorem Boundary / Claim Provenance | Auditor conjunctive claim confused with S3 native 4-category cascade. | Formalized $C_{\text{P10\_RETRO}}$ in Amendment 002; clarified S3 native is `MODEL_SPECIFIC` while $C_{\text{P10\_RETRO}}$ is `NotVerified`. Quantifier is profile-frozen (line 169); model set is retrospective instantiation. | **RESOLVED** |
 | **A-02** | Governance Regression | Self-assigned `RATIFIED` status in Amendment 001. | Removed unauthorized keyword; status updated to `PENDING OPERATOR RATIFICATION`. | **RESOLVED** |
 | **A-03** | Reproducibility / Audit Trace | Published adapter diff omitted the true post-run-001 mutation. | Extracted and published `adapter/POST_RUN_001_ADAPTER_MUTATION.diff` covering `548ed89` $\to$ `c3f9349`. | **RESOLVED** |
-| **A-04** | Undeclared Evaluator Discretion | `O_DUMMY_BENCHMARK_SEPARATION` had no explicit parameters. | Bound to explicit `dummy_skill_margin = 0.0` and `required_separation_prevalence = 0.95`. | **RESOLVED** |
-| **A-05** | Cryptographic Evidence Binding | Recompute & prevalence obligations did not hash raw CSVs. | Generated `PREDICTION_INPUT_MANIFEST.json` (264 CSVs) and bound both obligations directly to its digest. | **RESOLVED** |
+| **A-04 / B-03** | Undeclared Evaluator Discretion | `O_DUMMY_BENCHMARK_SEPARATION` parameter provenance. | 0.95 threshold verified as frozen in profile (line 176). Margin $\delta = 0.0$ disclosed as retrospective instantiation. | **RESOLVED** |
+| **A-05 / B-01** | Cryptographic Evidence Binding | Recompute & prevalence obligations did not hash raw CSVs. | Generated `PREDICTION_INPUT_MANIFEST.json` (264 CSVs) and bound both obligations. Independent recomputation corroborated 100% of numbers from raw CSVs. | **RESOLVED** |
 | **A-06** | Disclosed Checker Rewrite | Adapter revisions not documented as new checkers. | Full adapter lineage declared: v0.1 (Run-001), v0.2 (Run-002), v0.3 (Run-003). | **RESOLVED** |
 | **A-07** | Transcription vs Generation | Report v2 displayed decorated Lean harness. | Report v3 renders the exact verbatim bytes of the executed `ReplayDecision.lean`. | **RESOLVED** |
-| **A-08** | Quotation Attribution | Logic block cited to `PREREGISTRATION.md` instead of `s3_adjudication.py`. | Corrected attribution across all governance documents. | **RESOLVED** |
+| **A-08 / B-02** | Quotation Attribution | Logic block cited to wrong file and line range. | Corrected to `s3_adjudication.py` lines 141–145, quoted verbatim from source bytes. | **RESOLVED** |
+| **B-04** | Comparator Inequality | Amendment 002 stated $D > 0.10$ while code uses $D \ge 0.10$. | Outcome-invariance verified by measurement: 0 splits with $D = 0.10$ exactly. Documented as transcription defect. | **RESOLVED** |
+| **B-05** | Epistemic Framing | Retrospective run framed as proving absence of post-hoc discretion. | Reframed to *deterministic adjudication of an explicitly retrospective, post-hoc-instantiated claim over cryptographically bound evidence*. | **RESOLVED** |
 
 ---
 
@@ -203,5 +213,7 @@ Step 2 terminated immediately upon encountering `violated`. Even though `hasNonB
 - **Pre-Execution Freeze Commit:** `e952f0025b22a14ae9f7ff93d8c4202afbdbc3c0`
 - **Adapter Execution Status:** Completed without post-freeze mutation or in-place edits.
 - **Kernel Reproducibility:** Verified independently on `p10-core@fa7878a...`.
-- **Final Report State:** `EXECUTION COMPLETE / SPREMNO ZA HUMAN RATIFICATION`.
-- **Human Authority:** Awaiting formal review and ratification decision by Ivan Nestorov, Operator [L3].
+- **Independent Empirical Corroboration:** 100% of prediction table values reproduced independently from 264 raw CSVs.
+- **Gate Review Outcome:** `PASS WITH LIMITATIONS`.
+- **Final Report State:** `PREPARED FOR HUMAN RATIFICATION`.
+- **Human Authority:** Awaiting formal ratification by Ivan Nestorov, Operator [L3].

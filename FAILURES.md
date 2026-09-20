@@ -120,3 +120,28 @@ Following independent gate review of `run-002-corrected-conformance`, the termin
 - **`A-08` — Quotation Attribution:**
   - *Observation:* Formula attributed to `PREREGISTRATION.md` actually resided in `s3_adjudication.py`.
   - *Resolution:* Attribution corrected in `REPLAY_PLAN_AMENDMENT_001.md` and Report v3.
+
+---
+
+## 5. Run-003 Gate Review Findings (B-01 through B-05) & Closure
+
+Following independent gate review of `run-003-evidence-bound-conformance`, the gate reviewer performed an end-to-end clean-room recomputation directly from the 264 raw prediction CSV tables of `batteryml-protocol-robustness-s3@v1.0.0`. All figures were independently verified to 100% precision:
+- XGBoost: $18/64$ ($p_{\text{pos}} = 28.125\%$), $28/64$ ($p_{\text{abs}} = 43.75\%$)
+- Variance: $19/64$ ($p_{\text{pos}} = 29.688\%$), $20/64$ ($p_{\text{abs}} = 31.25\%$)
+- Ridge: $55/64$ ($p_{\text{pos}} = 85.938\%$), $58/64$ ($p_{\text{abs}} = 90.625\%$)
+- Dummy benchmark separation: $191/192 = 99.4792\%$ ($\ge 95\%$, 1 inversion).
+
+### Itemized Findings & Resolutions:
+
+- **`B-01` — Submission of Artifact Trail (Downgraded to Records Closure):**
+  - *Status:* **CLOSED.** All Run-003 artifacts (`obligation_trace.json`, `decision_view.json`, `ReplayDecision.lean`, `adjudication_stdout.log`, `PREDICTION_INPUT_MANIFEST.json`, adapter v0.3, and `POST_RUN_001_ADAPTER_MUTATION.diff`) are committed and tracked in the repository.
+- **`B-02` — Citation Line Bounds in Amendment 001:**
+  - *Status:* **CLOSED.** Citation corrected to `s3_adjudication.py` lines 141–145 where `p_abs`, `p_pos`, and `mat_prev` are evaluated, extracted verbatim from source bytes.
+- **`B-03` — Provenance of Dummy Parameters (Withdrawn / Narrowed):**
+  - *Status:* **CLOSED.** The gate reviewer retracted B-03 upon verifying line 176 of `spec/profiles/P10-BatteryML-S2-Profile-v0.1.md` (@ `dd88e62...`), which explicitly pre-registers the $\ge 95\%$ separation threshold. Only `dummy_skill_margin = 0.0` ($\delta_{\text{dummy}} = 0$) represents an auditor-chosen retrospective instantiation.
+- **`B-04` — Inequality Comparator ($D > 0.10$ vs $D \ge 0.10$):**
+  - *Status:* **CLOSED (Outcome-Invariant Documentation Defect).** Independent recomputation across all $64 \times 3 = 192$ model-split evaluations revealed zero cases where $D = 0.10$ exactly (nearest split was $2.8 \times 10^{-4}$ away). Thus $\operatorname{count}(D > 0.10) = \operatorname{count}(D \ge 0.10)$ identically. Amendment 002 is documented as $D \ge 0.10$ to match `s3_adjudication.py:142`. No execution rerun required.
+- **`B-05` — Epistemic Framing of Retrospective Claim:**
+  - *Status:* **CLOSED.** Phrasing claiming absence of post-hoc discretion in claim selection is removed. Framing is formally declared as *deterministic adjudication of an explicitly retrospective, post-hoc-instantiated claim over cryptographically bound evidence*.
+
+$$\boxed{\textbf{FINAL GATE REVIEW DISPOSITION: PASS WITH LIMITATIONS}}$$

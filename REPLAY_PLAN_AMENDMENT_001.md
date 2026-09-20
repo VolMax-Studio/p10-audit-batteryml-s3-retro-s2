@@ -32,12 +32,14 @@ metrics:
   material_prevalence: 0.50
 ```
 
-and implemented in the study's execution script `s3_adjudication.py` (lines 188–199):
+and implemented in the study's execution script `s3_adjudication.py` (lines 141–145):
 
 ```python
-# Evaluates material prevalence using threshold 0.10 and prevalence limit 0.50
-p_abs_m = fraction(|D_RMSE| >= 0.10)
-material_prevalent_m := (p_abs_m >= 0.50)
+        p_abs = sum(1 for d in changes if abs(d) >= MATERIAL_RELATIVE_CHANGE) / k_count
+        p_pos = sum(1 for d in changes if d >= MATERIAL_RELATIVE_CHANGE) / k_count
+        p_neg = sum(1 for d in changes if d <= -MATERIAL_RELATIVE_CHANGE) / k_count
+
+        mat_prev = p_abs >= MATERIAL_PREVALENCE
 ```
 
 ---
