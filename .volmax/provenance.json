@@ -1,0 +1,25 @@
+{
+  "baseline_commit": "4c351606a32bef857688e3ea41fccc16dfadb7e0",
+  "baseline_tree": "c29d3b655e1c8fff3ec7d0fb14490c345d0683ba",
+  "behavior": {
+    "callbacks": false,
+    "executable": false,
+    "network_calls": false,
+    "telemetry": false
+  },
+  "canonical_url": "https://github.com/VolMax-Studio/p10-audit-batteryml-s3-retro-s2",
+  "default_branch_at_recording": "main",
+  "license": {
+    "detected_spdx": null,
+    "files": [],
+    "note": "This provenance record does not grant or alter license rights."
+  },
+  "owner": "VolMax-Studio",
+  "record_id": "urn:volmax:github:VolMax-Studio/p10-audit-batteryml-s3-retro-s2:4c351606a32bef857688e3ea41fccc16dfadb7e0",
+  "record_type": "volmax.repository-provenance",
+  "record_version": 1,
+  "recorded_at": "2026-10-08T19:35:50+00:00",
+  "repository": "VolMax-Studio/p10-audit-batteryml-s3-retro-s2",
+  "schema": "urn:volmax:provenance:v1",
+  "scope": "Repository identity and baseline commit only; historical tags, releases, evidence, authorship, and existing file bytes are unchanged."
+}
